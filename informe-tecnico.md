@@ -150,9 +150,17 @@ El laboratorio implementó **escalabilidad horizontal** mediante un Auto Scaling
 
 Evidencia de la cadena causal descrita arriba:
 
-| Carga aplicada | CPU del grupo reacciona | El ASG escala |
-|---|---|---|
-| ![stress-ng en la primera instancia](images/19-stress-ng-instancia-1.png) | ![CPU promedio subiendo a 52.1%](images/21-cloudwatch-cpu-grupo.png) | ![GroupInServiceInstances 2 a 3](images/22-cloudwatch-groupinservice-salto.png) |
+**1. Carga aplicada** — `stress-ng --cpu 2 --timeout 300s` corriendo en la primera instancia del grupo:
+
+![stress-ng en la primera instancia](images/19-stress-ng-instancia-1.png)
+
+**2. El promedio de CPU del grupo reacciona** — sube de 0.3% a 52.1%:
+
+![CPU promedio del grupo subiendo a 52.1%](images/21-cloudwatch-cpu-grupo.png)
+
+**3. El Auto Scaling Group escala** — `GroupInServiceInstances` pasa de 2 a 3:
+
+![GroupInServiceInstances saltando de 2 a 3](images/22-cloudwatch-groupinservice-salto.png)
 
 ---
 
@@ -168,9 +176,17 @@ El atributo de calidad evidenciado directamente en la prueba de la Sección 8 es
 
 Evidencia de los tres mecanismos, en orden:
 
-| Redundancia + detección (targets sanos antes de la falla) | Se provoca la falla | El ASG se recupera solo |
-|---|---|---|
-| ![2/2 destinos Healthy](images/17-target-group-2-healthy-detalle.png) | ![Instancia detenida manualmente](images/25-instancia-detenida-simulacion-falla.png) | ![Terminación + lanzamiento de reemplazo](images/27-asg-actividad-recuperacion.png) |
+**1. Redundancia + detección** — los dos targets están sanos antes de la falla:
+
+![2/2 destinos Healthy](images/17-target-group-2-healthy-detalle.png)
+
+**2. Se provoca la falla** — la instancia se detiene manualmente:
+
+![Instancia detenida manualmente](images/25-instancia-detenida-simulacion-falla.png)
+
+**3. El ASG se recupera solo** — termina la instancia fallida y lanza una de reemplazo:
+
+![Terminación + lanzamiento de reemplazo](images/27-asg-actividad-recuperacion.png)
 
 ---
 
@@ -189,9 +205,21 @@ La observabilidad lograda aquí es puramente de **métricas y eventos de infraes
 
 Los cuatro paneles que se cruzaron para reconstruir la secuencia:
 
-| CPU del grupo | Capacidad del ASG | Estado de destinos | Métricas del ALB |
-|---|---|---|---|
-| ![CPUUtilization](images/21-cloudwatch-cpu-grupo.png) | ![Dashboard de capacidad](images/23-cloudwatch-dashboard-capacidad.png) | ![Destinos Healthy](images/16-target-group-2-healthy-resumen.png) | ![Métricas del ALB](images/24-cloudwatch-metricas-alb.png) |
+**CPU del grupo:**
+
+![CPUUtilization](images/21-cloudwatch-cpu-grupo.png)
+
+**Capacidad del ASG:**
+
+![Dashboard de capacidad](images/23-cloudwatch-dashboard-capacidad.png)
+
+**Estado de destinos:**
+
+![Destinos Healthy](images/16-target-group-2-healthy-resumen.png)
+
+**Métricas del ALB:**
+
+![Métricas del ALB](images/24-cloudwatch-metricas-alb.png)
 
 ---
 
