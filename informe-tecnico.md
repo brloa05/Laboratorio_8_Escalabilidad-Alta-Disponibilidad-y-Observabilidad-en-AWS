@@ -148,6 +148,12 @@ El laboratorio implementó **escalabilidad horizontal** mediante un Auto Scaling
 
 **Limitación observada:** usar solo CPU como métrica de escalamiento asume que el cuello de botella de la aplicación es de cómputo. Para una aplicación real que sirve mayormente contenido estático o hace I/O de red (como el `load.html` de este laboratorio), CPU puede no reflejar la carga real — de hecho, las pruebas de este laboratorio confirmaron que generar tráfico HTTP puro (sin `stress-ng`) no fue suficiente para disparar el escalamiento. Una métrica complementaria más representativa para una aplicación web sería `RequestCountPerTarget` (solicitudes por instancia), que sí captura presión de tráfico independientemente de cuánta CPU consuma cada solicitud.
 
+Evidencia de la cadena causal descrita arriba:
+
+| Carga aplicada | CPU del grupo reacciona | El ASG escala |
+|---|---|---|
+| ![stress-ng en la primera instancia](images/19-stress-ng-instancia-1.png) | ![CPU promedio subiendo a 52.1%](images/21-cloudwatch-cpu-grupo.png) | ![GroupInServiceInstances 2 a 3](images/22-cloudwatch-groupinservice-salto.png) |
+
 ---
 
 ## 10. Análisis de alta disponibilidad
@@ -159,6 +165,12 @@ La alta disponibilidad se sostiene sobre tres mecanismos verificados en este lab
 - **Recuperación automática:** el Auto Scaling Group, con los health checks de ELB habilitados, no solo saca del tráfico a una instancia no saludable — la termina y lanza una de reemplazo para mantener la capacidad deseada (Sección 8). Este es el comportamiento que distingue *tolerar una falla* (ocultarla momentáneamente) de *recuperarse de una falla* (restaurar el estado deseado del sistema).
 
 El atributo de calidad evidenciado directamente en la prueba de la Sección 8 es **disponibilidad (availability)**, con **resiliencia/auto-recuperación (self-healing)** como el mecanismo concreto que la sostiene.
+
+Evidencia de los tres mecanismos, en orden:
+
+| Redundancia + detección (targets sanos antes de la falla) | Se provoca la falla | El ASG se recupera solo |
+|---|---|---|
+| ![2/2 destinos Healthy](images/17-target-group-2-healthy-detalle.png) | ![Instancia detenida manualmente](images/25-instancia-detenida-simulacion-falla.png) | ![Terminación + lanzamiento de reemplazo](images/27-asg-actividad-recuperacion.png) |
 
 ---
 
@@ -174,6 +186,12 @@ Las métricas revisadas permitieron reconstruir, sin acceder a los logs de la ap
 | Historial de actividad del ASG | Auto Scaling | Bitácora textual exacta (con timestamp UTC y causa) de la terminación y el reemplazo de la instancia fallida |
 
 La observabilidad lograda aquí es puramente de **métricas y eventos de infraestructura** — no hay logs de aplicación centralizados ni trazas. Esto fue suficiente para diagnosticar el comportamiento del sistema, pero no habría sido suficiente para diagnosticar, por ejemplo, un error de lógica dentro de la aplicación (ver Sección 12).
+
+Los cuatro paneles que se cruzaron para reconstruir la secuencia:
+
+| CPU del grupo | Capacidad del ASG | Estado de destinos | Métricas del ALB |
+|---|---|---|---|
+| ![CPUUtilization](images/21-cloudwatch-cpu-grupo.png) | ![Dashboard de capacidad](images/23-cloudwatch-dashboard-capacidad.png) | ![Destinos Healthy](images/16-target-group-2-healthy-resumen.png) | ![Métricas del ALB](images/24-cloudwatch-metricas-alb.png) |
 
 ---
 
